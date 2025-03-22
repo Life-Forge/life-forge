@@ -67,14 +67,21 @@ class _HomePageState extends State<HomePage> {
   List<num> featuresData = [0,0,0,0,0]; //CHECK
   num overallLevel = 1; //CHECK
   final num streak = 1; // look at last and second last entry in the database and process
-  final List<double> weeklyProgress = [41, 12, 41, 31, 24, 51, 91]; // get from db
+  List<double> weeklyProgress = [0,0,0,0,0,0,0]; // get from db
+  /*
+  For now, we are gonna just put the percentage work for each day for week's progress
+  
+
+  */
+
+
   final String quote = 'You are doing great! Keep it up!'; // get from a text file or smtn....
 
-  List<Map<String, String>> questionsParameterPair = []; // get from parameter db
-                                                          //CHECK
+  List<Map<String, String>> questionsParameterPair = []; // get from parameter db -- CHECK
+                                                          
 
 
-  double currentPoints = 1100;//CHECk
+  double currentPoints = 0;//CHECk
   final double pointsForNextLevel = 1500; // get from levels definition 
   final double pointsForCurrentLevel = 1000;
   List<Map<String, dynamic>> userData = [];
@@ -104,7 +111,16 @@ Future<void> _loadProgressData() async{
     featuresData[i] = featuresData[i]/userDailyDataRaw.length;
     featuresData[i] = featuresData[i]*5;
   }
-  
+
+  weeklyProgress = List.generate(7, (index) => 0);
+
+  for (var i = 0; i < featuresData.length; i++) {
+    for (var x = 0; x < userDailyDataRaw.length; x++) {
+      double points = jsonStringToMapList(userDailyDataRaw[x].dailyData)[i]['sliderValue'];
+      weeklyProgress[x] += points/featuresData.length;    
+    }
+  }  
+
 }
 
   Future<void> _loadUserData() async {

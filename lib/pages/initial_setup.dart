@@ -299,7 +299,7 @@ class _SetupScreen3State extends State<_SetupScreen3> {
     });
   } else {
     // call function with proper answers variable 
-    print(goals);
+    //print(goals);
     insertUserData(goals);
     
     //Navigator.pop(context);
