@@ -5,11 +5,10 @@ import 'dart:io';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
-
 part 'app_database.g.dart';
 
 class Userdata extends Table {
-  IntColumn get id => integer()();//integer().autoIncrement()();
+  IntColumn get id => integer()(); //integer().autoIncrement()();
   TextColumn get personalData => text().withLength(min: 1, max: 500)();
   TextColumn get goalsDetails => text().withLength(min: 1, max: 5000)();
   IntColumn get userLevel => integer().withDefault(Constant(1))();
@@ -39,32 +38,35 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   Future<int> insertUser(UserdataCompanion user) {
-    return into(userdata).insert(user);  // ✅ Fixed `userdatas` → `userdata`
+    return into(userdata).insert(user); // ✅ Fixed `userdatas` → `userdata`
   }
 
   Future<List<UserdataData>> getAllUserData() {
-    return select(userdata).get();  // ✅ Fixed return type `UserdataData`
+    return select(userdata).get(); // ✅ Fixed return type `UserdataData`
   }
 
   Future<List<UserdailydataData>> getAllUserDailyData() {
-    return select(userdailydata).get();  // ✅ Fixed return type `UserdailydataData`
+    return select(
+      userdailydata,
+    ).get(); // ✅ Fixed return type `UserdailydataData`
   }
 
   Future<void> updateUserData(List<dynamic> newData) {
-    return (update(userdata)..where((tbl) => tbl.id.equals(newData[0])))
-        .write(UserdataCompanion(
-      personalData: Value(newData[1]),
-      goalsDetails: Value(newData[2]),
-      userLevel: Value(newData[3]),
-      userPoints: Value(newData[4]),
-    ));
+    return (update(userdata)..where((tbl) => tbl.id.equals(newData[0]))).write(
+      UserdataCompanion(
+        personalData: Value(newData[1]),
+        goalsDetails: Value(newData[2]),
+        userLevel: Value(newData[3]),
+        userPoints: Value(newData[4]),
+      ),
+    );
   }
 
   Future<void> insertUserDailyData(UserdailydataCompanion userDailyData) async {
-    into(userdailydata).insert(userDailyData);    
+    into(userdailydata).insert(userDailyData);
   }
 
-    //@override
+  //@override
   /*MigrationStrategy get migration => MigrationStrategy(
         beforeOpen: (details) async {
           if (details.wasCreated) {

@@ -1,16 +1,14 @@
-
-
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as f;
 import 'package:life_forge/utility/json_translator.dart';
 import 'package:life_forge/database/app_database.dart';
 
-void showFullScreenPopup(BuildContext context, questionsParameterPair ) {
-  List<Map<String,String>> questionsParameterPairs = questionsParameterPair;
-  
+void showFullScreenPopup(BuildContext context, questionsParameterPair) {
+  List<Map<String, String>> questionsParameterPairs = questionsParameterPair;
+
   showDialog(
-    context: context,    
+    context: context,
     barrierColor: Colors.black.withAlpha(108),
     builder: (context) {
       return Dialog(
@@ -23,21 +21,22 @@ void showFullScreenPopup(BuildContext context, questionsParameterPair ) {
 }
 
 class _QuestionnairePopup extends StatefulWidget {
-  final List<Map<String,String>> questionsParameterPair;
+  final List<Map<String, String>> questionsParameterPair;
   const _QuestionnairePopup(this.questionsParameterPair);
   @override
   // ignore: no_logic_in_create_state
-  _QuestionnairePopupState createState() => _QuestionnairePopupState(questionsParameterPair);
+  _QuestionnairePopupState createState() =>
+      _QuestionnairePopupState(questionsParameterPair);
 }
 
 class _QuestionnairePopupState extends State<_QuestionnairePopup> {
   int currentQuestion = 0;
   double sliderValue = 0;
-  final List<Map<String,String>> questions;
+  final List<Map<String, String>> questions;
   _QuestionnairePopupState(this.questions);
   TextEditingController textController = TextEditingController();
-  List<Map<String , dynamic>> answers = [];
-  
+  List<Map<String, dynamic>> answers = [];
+
   // questions should be loaded from HomePage when the popup is called -- done
 
   // patern : [[question, parameter],......]
@@ -45,21 +44,14 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
   // dialog needs to be made smaler -- done
   // close button for dialog -- done
   // way to send out data
-  
 
   @override
   void initState() {
     super.initState();
-    
   }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
-    
     return Container(
       width: double.infinity,
       height: MediaQuery.of(context).size.height,
@@ -69,7 +61,11 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
         children: [
           Text(
             questions[currentQuestion]['question'] ?? '',
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           SizedBox(height: 20),
           TextField(
@@ -79,12 +75,17 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
               hintStyle: TextStyle(color: Colors.white54),
               filled: true,
               fillColor: Colors.black.withAlpha(108),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             style: TextStyle(color: Colors.white),
           ),
           SizedBox(height: 20),
-          Text("Parameter Tracked:${questions[currentQuestion]['parameter']} \n Rate progress(0-100)", style: TextStyle(color: Colors.white)),
+          Text(
+            "Parameter Tracked:${questions[currentQuestion]['parameter']} \n Rate progress(0-100)",
+            style: TextStyle(color: Colors.white),
+          ),
           Slider(
             value: sliderValue,
             min: 0,
@@ -108,48 +109,48 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
               ),
               ElevatedButton(
                 onPressed: _nextQuestion,
-                child: Text(currentQuestion == questions.length - 1 ? "Finish" : "Next"),
+                child: Text(
+                  currentQuestion == questions.length - 1 ? "Finish" : "Next",
+                ),
               ),
             ],
           ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Icon(Icons.close),
-        ),
-        
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Icon(Icons.close),
+          ),
         ],
       ),
     );
   }
-    
+
   void _nextQuestion() {
-  //error
-  answers.add( {
-    "name": questions[currentQuestion]['name'],
-    "text": textController.text,
-    "sliderValue": sliderValue,
-  });
-
-
-  if (currentQuestion < questions.length - 1) {    
-    setState(() {
-      currentQuestion++;
-      sliderValue = 0;
-      textController.clear();
+    //error
+    answers.add({
+      "name": questions[currentQuestion]['name'],
+      "text": textController.text,
+      "sliderValue": sliderValue,
     });
-  } else {
-    // call function with proper answers variable 
-    
-    insertUserDailyData(answers);
-    Navigator.pop(context);
-    //printUserData();
-    //it works
-  }
+
+    if (currentQuestion < questions.length - 1) {
+      setState(() {
+        currentQuestion++;
+        sliderValue = 0;
+        textController.clear();
+      });
+    } else {
+      // call function with proper answers variable
+
+      insertUserDailyData(answers);
+      Navigator.pop(context);
+      //printUserData();
+      //it works
+    }
   }
 
-/*
+  /*
 Future<void> printUserData() async {
   final database = AppDatabase(); // Initialize your database
   final allUserDailyData = await database.getAllUserDailyData();
@@ -160,28 +161,25 @@ Future<void> printUserData() async {
   Future<void> insertUserDailyData(List<Map<String, dynamic>> answers) async {
     final database = AppDatabase(); // Initialize your database
 
-      final userEntry = UserdailydataCompanion(
+    final userEntry = UserdailydataCompanion(
       date: Value(DateTime.now()),
       dailyData: Value(mapListToJsonString(answers)),
       /*personalData: Value(answer['text']),
       goalsDetails: Value(answer['text']),
       userLevel: Value(answer['sliderValue'].toInt()),
       userPoints: Value(answer['sliderValue'].toInt()),*/
-      );
+    );
 
-      await database.insertUserDailyData(userEntry);
-    }
-  
-
+    await database.insertUserDailyData(userEntry);
+  }
 
   void _prevQuestion() {
-  if (currentQuestion > 0) {
-    setState(() {
-      currentQuestion--;
-      sliderValue = 0;
-      textController.clear();
-    });
+    if (currentQuestion > 0) {
+      setState(() {
+        currentQuestion--;
+        sliderValue = 0;
+        textController.clear();
+      });
+    }
   }
-  }
-  
 }

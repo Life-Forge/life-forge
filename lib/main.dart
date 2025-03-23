@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 //import 'package:drift/drift.dart';
 //import 'package:life_forge/utility/json_translator.dart';
@@ -20,29 +19,31 @@ import 'pages/initial_setup.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bool firstTime = await isFirstTime();
-  
+
   runApp(MyApp(firstTime: firstTime));
 }
 
 class MyApp extends StatelessWidget {
   final bool firstTime;
   const MyApp({super.key, required this.firstTime});
-  
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: firstTime ? SetupScreen() : HomePage(),// DEBUG: Uncomment for initial setup
+      home:
+          firstTime
+              ? SetupScreen()
+              : HomePage(), // DEBUG: Uncomment for initial setup
     );
   }
 }
 
-Future<bool> isFirstTime() async{ 
+Future<bool> isFirstTime() async {
   final prefs = await SharedPreferences.getInstance();
   final isFirstTime = prefs.getBool('isFirstTime') ?? true;
 
-  if(isFirstTime){
+  if (isFirstTime) {
     prefs.setBool('isFirstTime', false);
   }
   return isFirstTime;
