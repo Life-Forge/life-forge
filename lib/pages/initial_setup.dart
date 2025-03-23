@@ -249,7 +249,7 @@ class _SetupScreen3State extends State<_SetupScreen3> {
                 ),
                 ElevatedButton(
                   onPressed: _nextQuestion,
-                  child: Text(currentQuestion == 5 ? "Finish" : "Next"),
+                  child: Text(currentQuestion == 4 ? "Finish" : "Next"),
                 ),
               ],
             ),
@@ -277,7 +277,7 @@ class _SetupScreen3State extends State<_SetupScreen3> {
       "level": 0,
     });
 
-    if (currentQuestion < 5) {
+    if (currentQuestion < 4) {
       setState(() {
         currentQuestion++;
         sliderValue = 0;
