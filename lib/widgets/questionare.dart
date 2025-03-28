@@ -26,8 +26,8 @@ class _QuestionnairePopup extends StatefulWidget {
   @override
   // ignore: no_logic_in_create_state
   _QuestionnairePopupState createState() =>
-      // ignore: no_logic_in_create_state
-      _QuestionnairePopupState(questionsParameterPair);
+  // ignore: no_logic_in_create_state
+  _QuestionnairePopupState(questionsParameterPair);
 }
 
 class _QuestionnairePopupState extends State<_QuestionnairePopup> {

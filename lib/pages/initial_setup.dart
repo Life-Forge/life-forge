@@ -6,8 +6,6 @@ import 'package:life_forge/main.dart';
 import 'package:life_forge/utility/json_translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
-
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
@@ -96,12 +94,14 @@ class _SetupScreen2State extends State<SetupScreen2> {
                 ),
               ),
               ElevatedButton(
-                onPressed: () async{
+                onPressed: () async {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('user_name', textController.text);
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const SetupScreen3()),
+                    MaterialPageRoute(
+                      builder: (context) => const SetupScreen3(),
+                    ),
                   );
                 },
                 child: const Text('Continue'),
@@ -153,13 +153,15 @@ class _SetupScreen3State extends State<SetupScreen3> {
                   padding: const EdgeInsets.all(12.0),
                   child: GridView.builder(
                     shrinkWrap: true, // Prevents infinite height error
-                    physics: const NeverScrollableScrollPhysics(), // Uses parent scroll
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 2.5,
-                    ),
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Uses parent scroll
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 2.5,
+                        ),
                     itemCount: goalsOptions.length,
                     itemBuilder: (context, index) {
                       return GestureDetector(
@@ -171,13 +173,17 @@ class _SetupScreen3State extends State<SetupScreen3> {
                         child: Container(
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: isSelected[index] ? Colors.blue : Colors.grey,
+                            color:
+                                isSelected[index] ? Colors.blue : Colors.grey,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             goalsOptions[index],
                             style: TextStyle(
-                              color: isSelected[index] ? Colors.white : Colors.black,
+                              color:
+                                  isSelected[index]
+                                      ? Colors.white
+                                      : Colors.black,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -206,9 +212,8 @@ class _SetupScreen3State extends State<SetupScreen3> {
                         rawGoalsDetailsInput.add({
                           'name': goalsSelected[i],
                           'description': "Goal: improve in ${goalsSelected[i]}",
-                          'question' : 'How did you perform today?',
+                          'question': 'How did you perform today?',
                         });
-                        
                       }
 
                       final db = AppDatabase();
@@ -216,11 +221,13 @@ class _SetupScreen3State extends State<SetupScreen3> {
                       insertTestData(db, rawGoalsDetailsInput);
                       //print('Selected Goals: $goalsSelected');
                     });
-                    
+
                     // Move to the next screen
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => MyApp(firstTime: false,)), // Replace with your next screen
+                      MaterialPageRoute(
+                        builder: (context) => MyApp(firstTime: false),
+                      ), // Replace with your next screen
                     );
                   },
                   child: const Text('Continue'),
@@ -233,7 +240,6 @@ class _SetupScreen3State extends State<SetupScreen3> {
     );
   }
 }
-
 
 // to input question and parameter
 class SetupScreen4 extends StatefulWidget {
@@ -250,36 +256,35 @@ class _SetupScreen4State extends State<SetupScreen4> {
   }
 }
 
-
-
 Future<void> insertTestData(AppDatabase db, rawGoalsDetailsInput) async {
   List<Map<String, dynamic>> rawGoalsDetails = [
     {
       'name': "Goal1",
       'description': "This is a test goal",
-      'question' : 'What is your goal1?',
+      'question': 'What is your goal1?',
     },
     {
       'name': "Goal2",
       'description': "This is another test goal",
-      'question' : 'What is your goal2?',
+      'question': 'What is your goal2?',
     },
     {
       'name': "Goal3",
       'description': "This is a test goal",
-      'question' : 'What is your goal?3',
+      'question': 'What is your goal?3',
     },
     {
       'name': "Goal4",
       'description': "This is another test goal",
-      'question' : 'What is your goal?4',
-    },{
+      'question': 'What is your goal?4',
+    },
+    {
       'name': "Goal5",
       'description': "This is a test goal",
-      'question' : 'What is your goal?5',
+      'question': 'What is your goal?5',
     },
   ];
-  
+
   final prefs = await SharedPreferences.getInstance();
   String? storedName = prefs.getString('user_name');
 
@@ -287,28 +292,29 @@ Future<void> insertTestData(AppDatabase db, rawGoalsDetailsInput) async {
     {
       "name": storedName,
       "age": 99,
-      "preferences": {"motivation": "Challenges", "learning_style": "Visual"}
-    }
+      "preferences": {"motivation": "Challenges", "learning_style": "Visual"},
+    },
   ];
 
-
-  if (rawGoalsDetailsInput != null){
+  if (rawGoalsDetailsInput != null) {
     rawGoalsDetails = rawGoalsDetailsInput;
   }
-  
+
   // Pass values through the JSON translator
   final translatedPersonalData = mapListToJsonString(rawPersonalData);
   final translatedGoalsDetails = mapListToJsonString(rawGoalsDetails);
 
-  await db.delete(db.userdata).go(); 
+  await db.delete(db.userdata).go();
 
-  await db.into(db.userdata).insert(
-    UserdataCompanion.insert(
-      id: 1,
-      personalData: translatedPersonalData,
-      goalsDetails: translatedGoalsDetails,
-      userLevel: Value(0),
-      userPoints: Value(0),
-    ),
-  );
+  await db
+      .into(db.userdata)
+      .insert(
+        UserdataCompanion.insert(
+          id: 1,
+          personalData: translatedPersonalData,
+          goalsDetails: translatedGoalsDetails,
+          userLevel: Value(0),
+          userPoints: Value(0),
+        ),
+      );
 }
