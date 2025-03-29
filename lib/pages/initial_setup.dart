@@ -1,13 +1,10 @@
-//import 'dart:nativewrappers/_internal/vm/lib/internal_patch.dart';
-
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import 'package:life_forge/database/app_database.dart';
-import 'package:life_forge/utility/json_translator.dart';
 import 'package:flutter/material.dart' as f;
-//import 'package:life_forge/pages/home.dart';
+import 'package:life_forge/database/app_database.dart';
+import 'package:life_forge/main.dart';
+import 'package:life_forge/utility/json_translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:life_forge/main.dart'; // Import MyApp for restarting the app
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -16,13 +13,11 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
-
 class _SetupScreenState extends State<SetupScreen> {
-
-    Future<void> completeSetup() async {
+  Future<void> completeSetup() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('first_time', false);
-    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,30 +26,26 @@ class _SetupScreenState extends State<SetupScreen> {
         body: f.Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            SizedBox(height: 50),
-            Center(
-              child: const Text('Welcome to LifeForge!', 
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  )
-                ),
+            const SizedBox(height: 50),
+            const Center(
+              child: Text(
+                'Welcome to LifeForge!',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
             ),
-
-            Padding(padding: const EdgeInsets.all(20.0),
-              child: const Text("Welcome! Let's set things up to personalize your experience. It'll only take a moment, and then you're all set to go! 🚀", 
-                style: TextStyle(
-                  fontSize: 16,
-                  )
-                ),
+            const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text(
+                "Welcome! Let's set things up to personalize your experience. It'll only take a moment, and then you're all set to go! 🚀",
+                style: TextStyle(fontSize: 16),
+              ),
             ),
-
             ElevatedButton(
               onPressed: () {
                 completeSetup();
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => _SetupScreen2()),
+                  MaterialPageRoute(builder: (context) => const SetupScreen2()),
                 );
               },
               child: const Text('Continue'),
@@ -66,305 +57,264 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 }
 
-class _SetupScreen2 extends StatefulWidget {
-  const _SetupScreen2();
+class SetupScreen2 extends StatefulWidget {
+  const SetupScreen2({super.key});
 
   @override
-  State<_SetupScreen2> createState() => __SetupScreen2State();
+  State<SetupScreen2> createState() => _SetupScreen2State();
 }
 
-class __SetupScreen2State extends State<_SetupScreen2> {
+class _SetupScreen2State extends State<SetupScreen2> {
   TextEditingController textController = TextEditingController();
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(child: Scaffold(
-      body: SingleChildScrollView(
-        child:  f.Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(height: 50),
-            Padding(padding: const EdgeInsets.all(20.0),
-              child: const Text("Let's get started by setting up your personal data.", 
-                style: TextStyle(
-                  fontSize: 16,
-                  )
-                ),
-            ),
-
-            TextField(
-              controller: textController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Name',
-              ),
-            ),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => _SetupScreen3()),
-                );
-              },
-              child: const Text('Continue'),
-            ),
-
-
-
-          ],
-        )
-      )
-    )
-    );
-  }
-}
-
-
-
-
-
-
-
-void showFullScreenPopup(BuildContext context) {
-  //List<Map<String,String>> questionsParameterPairs = questionsParameterPair;
-  
-  showDialog(
-    context: context,    
-    barrierColor: Colors.black.withAlpha(108),
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.black.withAlpha(204),
-        insetPadding: EdgeInsets.all(20.0),
-        child: _SetupScreen3(),
-      );
-    },
-  );
-}
-
-class _SetupScreen3 extends StatefulWidget {
-  //final List<Map<String,String>> questionsParameterPair;
-  //const _SetupScreen3(this.questionsParameterPair);
-  @override
-  // ignore: no_logic_in_create_state
-  _SetupScreen3State createState() => _SetupScreen3State();
-}
-
-class _SetupScreen3State extends State<_SetupScreen3> {
-  int currentQuestion = 0;
-  double sliderValue = 0;
-  //final List<Map<String,String>> questions;
-  //_SetupScreen3State(this.questions);
-  TextEditingController goalNameController = TextEditingController();
-  TextEditingController goalDiscriptionController = TextEditingController();
-  TextEditingController goalQuestionController = TextEditingController();
-  TextEditingController goalParameterController = TextEditingController();
-  List<Map<String , dynamic>> goals = [];
-  
-  // questions should be loaded from HomePage when the popup is called -- done
-
-  // patern : [[question, parameter],......]
-
-  // dialog needs to be made smaler -- done
-  // close button for dialog -- done
-  // way to send out data
-  
-
-  @override
-  void initState() {
-    super.initState();
-    
-  }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
-    
-    return Scaffold( 
-      body: Container(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.height,
-      padding: EdgeInsets.all(20),
-      child: f.Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Enter Your Goal - $currentQuestion',
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 20),
-          TextField(
-            controller: goalNameController,
-            decoration: InputDecoration(
-              hintText: "Enter the name of your Goal...",
-              hintStyle: TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.black.withAlpha(108),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            style: TextStyle(color: Colors.white),
-          ),
-
-
-          SizedBox(height: 20),
-
-
-
-          TextField(
-            controller: goalDiscriptionController,
-            decoration: InputDecoration(
-              hintText: "Enter the discription of your Goal...",
-              hintStyle: TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.black.withAlpha(108),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            style: TextStyle(color: Colors.white),
-          ),
-
-          TextField(
-            controller: goalQuestionController,
-            decoration: InputDecoration(
-              hintText: "Enter the name of your Goal...",
-              hintStyle: TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.black.withAlpha(108),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            style: TextStyle(color: Colors.white),
-          ),
-
-          TextField(
-            controller: goalParameterController,
-            decoration: InputDecoration(
-              hintText: "Enter the name of your Goal...",
-              hintStyle: TextStyle(color: Colors.white54),
-              filled: true,
-              fillColor: Colors.black.withAlpha(108),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            style: TextStyle(color: Colors.white),
-          ),
-
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return SafeArea(
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: f.Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              ElevatedButton(
-                onPressed: _prevQuestion,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                child: Text("Previous"),
+              const SizedBox(height: 50),
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Text(
+                  "Let's get started by setting up your personal data.",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: TextField(
+                  controller: textController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Name',
+                  ),
+                ),
               ),
               ElevatedButton(
-                onPressed: _nextQuestion,
-                child: Text(currentQuestion == 5 ? "Finish" : "Next"),
+                onPressed: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('user_name', textController.text);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SetupScreen3(),
+                    ),
+                  );
+                },
+                child: const Text('Continue'),
               ),
             ],
           ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: Icon(Icons.close),
         ),
-        
-        ],
       ),
-    ));
-  }
-    
-  void _nextQuestion() {
-  //error
-  goals.add( {
-    "name": goalNameController.text,
-    "description": goalDiscriptionController.text,
-    "question": goalQuestionController.text,
-    "parameter": goalParameterController.text,
-    "dateAdded": DateTime.now().toString(),
-    "points": 0,
-    "level": 0,
-  });
-
-
-  if (currentQuestion < 5) {    
-    setState(() {
-      currentQuestion++;
-      sliderValue = 0;
-      goalNameController.clear();
-      goalDiscriptionController.clear();
-      goalQuestionController.clear();
-      goalParameterController.clear();
-    });
-  } else {
-    // call function with proper answers variable 
-    print(goals);
-    insertUserData(goals);
-    
-    //Navigator.pop(context);
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => MyApp(firstTime: false,)),
     );
-    //printUserData();
-    //it works
   }
-  }
-
-/*
-Future<void> printUserData() async {
-  final database = AppDatabase(); // Initialize your database
-  final allUserDailyData = await database.getAllUserDailyData();
-  print(allUserDailyData);
 }
-*/
 
-  Future<void> insertUserData(List<Map<String, dynamic>> goals) async {
-    final database = AppDatabase(); // Initialize your database
+class SetupScreen3 extends StatefulWidget {
+  const SetupScreen3({super.key});
 
-      final goalsEntry = UserdataCompanion(
-      id: Value(1),
-      personalData: Value(mapListToJsonString([
-        {'name': "TestUser"}
-      ])),
-      goalsDetails: Value(mapListToJsonString(goals)),
-      userLevel: Value(0),
-      userPoints: Value(0),
-      
-      /*personalData: Value(answer['text']),
-      goalsDetails: Value(answer['text']),
-      userLevel: Value(answer['sliderValue'].toInt()),
-      userPoints: Value(answer['sliderValue'].toInt()),*/
+  @override
+  State<SetupScreen3> createState() => _SetupScreen3State();
+}
+
+class _SetupScreen3State extends State<SetupScreen3> {
+  final List<String> goalsOptions = [
+    'Education',
+    'Career',
+    'Diet',
+    'Relationships',
+    'Financial',
+    'Personal Growth',
+    'Fitness',
+  ];
+  List<String> goalsSelected = [];
+  List<bool> isSelected = [];
+  List<Map<String, dynamic>> rawGoalsDetailsInput = [];
+  @override
+  void initState() {
+    super.initState();
+    isSelected = List.filled(goalsOptions.length, false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Select your GOALS')),
+      body: SafeArea(
+        child: f.Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: GridView.builder(
+                    shrinkWrap: true, // Prevents infinite height error
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Uses parent scroll
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 2.5,
+                        ),
+                    itemCount: goalsOptions.length,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isSelected[index] = !isSelected[index];
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected[index] ? Colors.blue : Colors.grey,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            goalsOptions[index],
+                            style: TextStyle(
+                              color:
+                                  isSelected[index]
+                                      ? Colors.white
+                                      : Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity, // Full-width button
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      goalsSelected.clear(); // Clear previous selections
+                      for (var i = 0; i < isSelected.length; i++) {
+                        if (isSelected[i]) {
+                          goalsSelected.add(goalsOptions[i]);
+                        }
+                      }
+
+                      for (var i = 0; i < goalsSelected.length; i++) {
+                        rawGoalsDetailsInput.add({
+                          'name': goalsSelected[i],
+                          'description': "Goal: improve in ${goalsSelected[i]}",
+                          'question': 'How did you perform today?',
+                        });
+                      }
+
+                      final db = AppDatabase();
+
+                      insertTestData(db, rawGoalsDetailsInput);
+                      //print('Selected Goals: $goalsSelected');
+                    });
+
+                    // Move to the next screen
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyApp(firstTime: false),
+                      ), // Replace with your next screen
+                    );
+                  },
+                  child: const Text('Continue'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// to input question and parameter
+class SetupScreen4 extends StatefulWidget {
+  const SetupScreen4({super.key});
+
+  @override
+  State<SetupScreen4> createState() => _SetupScreen4State();
+}
+
+class _SetupScreen4State extends State<SetupScreen4> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+Future<void> insertTestData(AppDatabase db, rawGoalsDetailsInput) async {
+  List<Map<String, dynamic>> rawGoalsDetails = [
+    {
+      'name': "Goal1",
+      'description': "This is a test goal",
+      'question': 'What is your goal1?',
+    },
+    {
+      'name': "Goal2",
+      'description': "This is another test goal",
+      'question': 'What is your goal2?',
+    },
+    {
+      'name': "Goal3",
+      'description': "This is a test goal",
+      'question': 'What is your goal?3',
+    },
+    {
+      'name': "Goal4",
+      'description': "This is another test goal",
+      'question': 'What is your goal?4',
+    },
+    {
+      'name': "Goal5",
+      'description': "This is a test goal",
+      'question': 'What is your goal?5',
+    },
+  ];
+
+  final prefs = await SharedPreferences.getInstance();
+  String? storedName = prefs.getString('user_name');
+
+  List<Map<String, dynamic>> rawPersonalData = [
+    {
+      "name": storedName,
+      "age": 99,
+      "preferences": {"motivation": "Challenges", "learning_style": "Visual"},
+    },
+  ];
+
+  if (rawGoalsDetailsInput != null) {
+    rawGoalsDetails = rawGoalsDetailsInput;
+  }
+
+  // Pass values through the JSON translator
+  final translatedPersonalData = mapListToJsonString(rawPersonalData);
+  final translatedGoalsDetails = mapListToJsonString(rawGoalsDetails);
+
+  await db.delete(db.userdata).go();
+
+  await db
+      .into(db.userdata)
+      .insert(
+        UserdataCompanion.insert(
+          id: 1,
+          personalData: translatedPersonalData,
+          goalsDetails: translatedGoalsDetails,
+          userLevel: Value(0),
+          userPoints: Value(0),
+        ),
       );
-
-      await database.into(database.userdata).insert( goalsEntry );
-      
-
-    }
-  
-
-
-  void _prevQuestion() {
-  if (currentQuestion > 0) {
-    setState(() {
-      currentQuestion--;
-      sliderValue = 0;
-      goalDiscriptionController.clear();
-      goalNameController.clear();
-      goalQuestionController.clear();
-      goalParameterController.clear();
-    });
-  }
-  }
-  
 }
-
-/* 
-
-Okay, the input works. Name needs to be fixed. 
-Set initial points 
-Set initial level
-Fix data showing up in the bar graph
-
-*/

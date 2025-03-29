@@ -1,5 +1,3 @@
-
-
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -13,10 +11,10 @@ import 'package:life_forge/utility/json_translator.dart';
 
 Future<String?> myUserData(int userId, String fieldName) async {
   final db = AppDatabase();
-  final query = db.select(db.userdata)
-    ..where((tbl) => tbl.id.equals(userId))
-    ..limit(1);
-
+  final query =
+      db.select(db.userdata)
+        ..where((tbl) => tbl.id.equals(userId))
+        ..limit(1);
 
   final result = await query.getSingleOrNull();
   //List<UserdataData>? userdatatable = await db.getAllUserData();
@@ -34,11 +32,12 @@ Future<String?> myUserData(int userId, String fieldName) async {
   } // Returns a JSON string
 }
 
-
 Future<List<UserdailydataData>> getxLatestDailyReadings(int x) async {
   final db = AppDatabase();
   return await (db.select(db.userdailydata)
-        ..orderBy([(u) => OrderingTerm.desc(u.id)]) // Order by ID in descending order
+        ..orderBy([
+          (u) => OrderingTerm.desc(u.id),
+        ]) // Order by ID in descending order
         ..limit(x)) // Get up to x entries
       .get();
 }
@@ -52,11 +51,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
-  
-  String username = 'User'; //CHECK 
-  
-  final List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];//CHECK
+  String username = 'User'; //CHECK
+
+  final List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; //CHECK
   List<String> featuresToTrack = [
     'Feature1',
     'Feature2',
@@ -64,18 +61,25 @@ class _HomePageState extends State<HomePage> {
     'Feature4',
     'Feature5',
   ]; //CHECK
-  List<num> featuresData = [0,0,0,0,0]; //CHECK
+  List<num> featuresData = [0, 0, 0, 0, 0]; //CHECK
   num overallLevel = 1; //CHECK
-  final num streak = 1; // look at last and second last entry in the database and process
-  final List<double> weeklyProgress = [41, 12, 41, 31, 24, 51, 91]; // get from db
-  final String quote = 'You are doing great! Keep it up!'; // get from a text file or smtn....
+  final num streak =
+      1; // look at last and second last entry in the database and process
+  List<double> weeklyProgress = [0, 0, 0, 0, 0, 0, 0]; // get from db
+  /*
+  For now, we are gonna just put the percentage work for each day for week's progress
+  
 
-  List<Map<String, String>> questionsParameterPair = []; // get from parameter db
-                                                          //CHECK
+  */
 
+  final String quote =
+      'You are doing great! Keep it up!'; // get from a text file or smtn....
 
-  double currentPoints = 1100;//CHECk
-  final double pointsForNextLevel = 1500; // get from levels definition 
+  List<Map<String, String>> questionsParameterPair =
+      []; // get from parameter db -- CHECK
+
+  double currentPoints = 0; //CHECk
+  final double pointsForNextLevel = 1500; // get from levels definition
   final double pointsForCurrentLevel = 1000;
   List<Map<String, dynamic>> userData = [];
   List<Map<String, dynamic>> goalsDetails = [];
@@ -87,48 +91,68 @@ class _HomePageState extends State<HomePage> {
     _loadProgressData();
   }
 
-Future<void> _loadProgressData() async{
-  List<UserdailydataData> userDailyDataRaw = await getxLatestDailyReadings(7);
+  Future<void> _loadProgressData() async {
+    List<UserdailydataData> userDailyDataRaw = await getxLatestDailyReadings(7);
 
-  featuresData = List.generate(jsonStringToMapList(userDailyDataRaw[0].dailyData).length, (index) => 0);
-  
-  for (var i = 0; i < userDailyDataRaw.length; i++) {
-    for (var x = 0; x < featuresData.length; x++) {
-    double points = jsonStringToMapList(userDailyDataRaw[i].dailyData)[x]['sliderValue'];
-    featuresData[x] += points/100;    
+    featuresData = List.generate(
+      jsonStringToMapList(userDailyDataRaw[0].dailyData).length,
+      (index) => 0,
+    );
+
+    for (var i = 0; i < userDailyDataRaw.length; i++) {
+      for (var x = 0; x < featuresData.length; x++) {
+        double points =
+            jsonStringToMapList(
+              userDailyDataRaw[i].dailyData,
+            )[x]['sliderValue'];
+        featuresData[x] += points / 100;
+      }
+    }
+
+    for (var i = 0; i < featuresData.length; i++) {
+      featuresData[i] = featuresData[i] / userDailyDataRaw.length;
+      featuresData[i] = featuresData[i] * 5;
+    }
+
+    weeklyProgress = List.generate(7, (index) => 0);
+
+    for (var i = 0; i < featuresData.length; i++) {
+      for (var x = 0; x < userDailyDataRaw.length; x++) {
+        double points =
+            jsonStringToMapList(
+              userDailyDataRaw[x].dailyData,
+            )[i]['sliderValue'];
+        weeklyProgress[x] += points / featuresData.length;
+      }
     }
   }
-  
-  
-  for (var i = 0; i < featuresData.length; i++) {
-    featuresData[i] = featuresData[i]/userDailyDataRaw.length;
-    featuresData[i] = featuresData[i]*5;
-  }
-  
-}
 
   Future<void> _loadUserData() async {
-    String? userDataRaw = await myUserData(1, 'personalData'); // Replace 1 with actual user ID
+    String? userDataRaw = await myUserData(
+      1,
+      'personalData',
+    ); // Replace 1 with actual user ID
     String? levelStr = await myUserData(1, 'userLevel');
     String? goalsDetailsRaw = await myUserData(1, 'goalsDetails');
     String? userPointsRaw = await myUserData(1, 'userPoints');
-    
-    
-    if (levelStr == null){
-      overallLevel = 0;        
-    }
-    else{
+
+    if (levelStr == null) {
+      overallLevel = 0;
+    } else {
       overallLevel = num.parse(levelStr);
     }
 
-    if (goalsDetailsRaw != null) {     
+    if (goalsDetailsRaw != null) {
       setState(() {
         goalsDetails = jsonStringToMapList(goalsDetailsRaw);
-        featuresToTrack = List.generate(goalsDetails.length, (index) => goalsDetails[index]['name']);
+        featuresToTrack = List.generate(
+          goalsDetails.length,
+          (index) => goalsDetails[index]['name'],
+        );
       });
     }
 
-    if (userDataRaw != null) {     
+    if (userDataRaw != null) {
       setState(() {
         userData = jsonStringToMapList(userDataRaw);
       });
@@ -143,26 +167,18 @@ Future<void> _loadProgressData() async{
     }
 
     if (goalsDetailsRaw != null) {
-        goalsDetails = jsonStringToMapList(goalsDetailsRaw);
-        //print('key=B2 $goalsDetails');
-        for (var i = 0; i < goalsDetails.length; i++) {
-        
-          questionsParameterPair.add({
-            'question': goalsDetails[i]['question'] ?? '',
-            'parameter': goalsDetails[i]['parameter'] ?? '',
-            'name': goalsDetails[i]['name'] ?? '',
-          });
-        }
-        //print('key=B1 $questionsParameterPair');
-     
-      
-      
+      goalsDetails = jsonStringToMapList(goalsDetailsRaw);
+      //print('key=B2 $goalsDetails');
+      for (var i = 0; i < goalsDetails.length; i++) {
+        questionsParameterPair.add({
+          'question': goalsDetails[i]['question'] ?? '',
+          'parameter': goalsDetails[i]['parameter'] ?? '',
+          'name': goalsDetails[i]['name'] ?? '',
+        });
+      }
+      //print('key=B1 $questionsParameterPair');
     }
-    
   }
-
-  
-
 
   /* 
   
@@ -200,7 +216,6 @@ Future<void> _loadProgressData() async{
 
   */
 
-
   /* 
   Make all absolute values a variable tht is called in here. and make the graphs dynamic to number of parameters being tracked. -- done
 
@@ -230,18 +245,12 @@ Future<void> _loadProgressData() async{
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),          
+          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
         ],
-        leading: IconButton(
-            icon: Icon(Icons.share),
-            onPressed: () {},
-          ),
+        leading: IconButton(icon: Icon(Icons.share), onPressed: () {}),
       ),
       body: SafeArea(
-        child:Stack(
+        child: Stack(
           children: [
             Padding(
               padding: const EdgeInsets.all(20.0),
@@ -260,7 +269,6 @@ Future<void> _loadProgressData() async{
             Add padding for the name and level of the goal.
 
             */
-
             Padding(
               padding: const EdgeInsets.only(top: 60.0),
               child: material.Column(
@@ -280,17 +288,24 @@ Future<void> _loadProgressData() async{
                   ),
 
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center, // Center the row
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center the row
                     children: [
                       SizedBox(
-                        width: screenWidth*0.8, // Adjust width as needed
+                        width: screenWidth * 0.8, // Adjust width as needed
                         child: LinearProgressIndicator(
-                          value: (currentPoints-pointsForCurrentLevel)/(pointsForNextLevel-pointsForCurrentLevel),
+                          value:
+                              (currentPoints - pointsForCurrentLevel) /
+                              (pointsForNextLevel - pointsForCurrentLevel),
                           backgroundColor: Colors.grey,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
                         ),
                       ),
-                      SizedBox(width: 10), // Space between progress bar and text
+                      SizedBox(
+                        width: 10,
+                      ), // Space between progress bar and text
                       Text(
                         '$overallLevel', // Example text
                         style: TextStyle(
@@ -300,7 +315,6 @@ Future<void> _loadProgressData() async{
                       ),
                     ],
                   ),
-                  
 
                   Text(
                     'Streak: \n \t   $streak',
@@ -308,7 +322,10 @@ Future<void> _loadProgressData() async{
                   ),
 
                   Padding(
-                    padding: EdgeInsets.only(top: screenHeight*0.05 , left: 20.0,),
+                    padding: EdgeInsets.only(
+                      top: screenHeight * 0.05,
+                      left: 20.0,
+                    ),
                     child: Center(
                       child: SizedBox(
                         height: screenHeight * 0.09,
@@ -317,7 +334,7 @@ Future<void> _loadProgressData() async{
                           BarChartData(
                             alignment: BarChartAlignment.spaceAround,
                             maxY: 100,
-                            
+
                             barGroups: [
                               BarChartGroupData(
                                 x: 0,
@@ -325,9 +342,8 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[0],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
-                                    
                                   ),
                                 ],
                               ),
@@ -337,7 +353,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[1],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -348,7 +364,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[2],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -359,7 +375,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[3],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -370,7 +386,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[4],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -381,7 +397,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[5],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -392,7 +408,7 @@ Future<void> _loadProgressData() async{
                                   BarChartRodData(
                                     toY: weeklyProgress[6],
                                     color: Colors.blue,
-                                    width: screenWidth*0.05,
+                                    width: screenWidth * 0.05,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                 ],
@@ -433,32 +449,37 @@ Future<void> _loadProgressData() async{
                   ),
 
                   Padding(
-                    padding: EdgeInsets.only(top: screenHeight*0.03),
+                    padding: EdgeInsets.only(top: screenHeight * 0.03),
                     child: Text(
                       quote,
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-                  
-          material.Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [                  
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: ElevatedButton(
-                    onPressed: () => showFullScreenPopup(context, questionsParameterPair),
-                    child: Text('Record Today\'s Progress'),
+
+            material.Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: ElevatedButton(
+                      onPressed:
+                          () => showFullScreenPopup(
+                            context,
+                            questionsParameterPair,
+                          ),
+                      child: Text('Record Today\'s Progress'),
+                    ),
                   ),
                 ),
-              ),
-            ],
-                
-              
+              ],
             ),
           ],
         ),
@@ -466,10 +487,7 @@ Future<void> _loadProgressData() async{
 
       bottomNavigationBar: NavigationBar(
         destinations: [
-          NavigationDestination(
-            icon: Icon(Icons.home), 
-            label: 'Home',
-          ),
+          NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(
             icon: Icon(Icons.trending_up),
             label: 'My Goals',
@@ -482,10 +500,7 @@ Future<void> _loadProgressData() async{
             icon: Icon(Icons.account_circle),
             label: 'Profile',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings), 
-            label: 'Settings',
-          ),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
         ],
       ),
     );
