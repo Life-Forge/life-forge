@@ -127,7 +127,7 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
     );
   }
 
-  void _nextQuestion() {
+  Future<void> _nextQuestion() async {
     //error
     answers.add({
       "name": questions[currentQuestion]['name'],
@@ -143,8 +143,19 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
       });
     } else {
       // call function with proper answers variable
+      int points = 0;
+      for (var i = 0; i < answers.length; i++) {
+        double x = (answers[i]['sliderValue']);
+        points += x.toInt();
+      }
+      points = (points / questions.length).toInt();
+      //print('updatePoints called');
+      await updatePoints(points);
+      //print('updatePoints done');
 
       insertUserDailyData(answers);
+
+      // ignore: use_build_context_synchronously
       Navigator.pop(context);
       //printUserData();
       //it works
@@ -172,6 +183,31 @@ Future<void> printUserData() async {
     );
 
     await database.insertUserDailyData(userEntry);
+  }
+
+  Future<void> updatePoints(int pointsGained) async {
+    //print('updatePoints started');
+
+    final database = AppDatabase(); // Initialize your database
+
+    // Fetch existing user data
+    final user =
+        await (database.select(database.userdata)
+          ..where((t) => t.id.equals(1))).getSingleOrNull();
+
+    if (user == null) {
+      //print("No user found in database.");
+      return;
+    }
+
+    // Update only userPoints while keeping other values unchanged
+    await (database.update(database.userdata)
+      ..where((t) => t.id.equals(1))).write(
+      UserdataCompanion(userPoints: Value(user.userPoints + pointsGained)),
+    );
+
+    //final updatedUser = await (database.select(database.userdata)..where((t) => t.id.equals(1))).getSingleOrNull();
+    //print('Database values (Key=1B) -> Level: ${updatedUser?.userLevel}, Points: ${updatedUser?.userPoints}');
   }
 
   void _prevQuestion() {

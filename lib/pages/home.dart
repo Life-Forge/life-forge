@@ -27,6 +27,10 @@ Future<String?> myUserData(int userId, String fieldName) async {
       return result.personalData;
     case 'goalsDetails':
       return result.goalsDetails;
+    case 'userPoints':
+      return result.userPoints.toString();
+    case 'userLevel':
+      return result.userLevel.toString();
     default:
       return null; // Handle invalid field names
   } // Returns a JSON string
@@ -79,8 +83,8 @@ class _HomePageState extends State<HomePage> {
       []; // get from parameter db -- CHECK
 
   double currentPoints = 0; //CHECk
-  final double pointsForNextLevel = 1500; // get from levels definition
-  final double pointsForCurrentLevel = 1000;
+  final double pointsForNextLevel = 150; // get from levels definition
+  final double pointsForCurrentLevel = 0;
   List<Map<String, dynamic>> userData = [];
   List<Map<String, dynamic>> goalsDetails = [];
 
@@ -135,7 +139,7 @@ class _HomePageState extends State<HomePage> {
     String? levelStr = await myUserData(1, 'userLevel');
     String? goalsDetailsRaw = await myUserData(1, 'goalsDetails');
     String? userPointsRaw = await myUserData(1, 'userPoints');
-
+    //print('$userPointsRaw:1A:$levelStr');
     if (levelStr == null) {
       overallLevel = 0;
     } else {

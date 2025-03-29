@@ -98,6 +98,7 @@ class _SetupScreen2State extends State<SetupScreen2> {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('user_name', textController.text);
                   Navigator.pushReplacement(
+                    // ignore: use_build_context_synchronously
                     context,
                     MaterialPageRoute(
                       builder: (context) => const SetupScreen3(),
@@ -304,17 +305,32 @@ Future<void> insertTestData(AppDatabase db, rawGoalsDetailsInput) async {
   final translatedPersonalData = mapListToJsonString(rawPersonalData);
   final translatedGoalsDetails = mapListToJsonString(rawGoalsDetails);
 
-  await db.delete(db.userdata).go();
+  final existingUser =
+      await (db.select(db.userdata)
+        ..where((t) => t.id.equals(1))).getSingleOrNull();
 
-  await db
-      .into(db.userdata)
-      .insert(
-        UserdataCompanion.insert(
-          id: 1,
-          personalData: translatedPersonalData,
-          goalsDetails: translatedGoalsDetails,
-          userLevel: Value(0),
-          userPoints: Value(0),
-        ),
-      );
+  if (existingUser == null) {
+    // Insert the user if they don't exist
+    await db
+        .into(db.userdata)
+        .insert(
+          UserdataCompanion.insert(
+            id: 1,
+            personalData: translatedPersonalData,
+            goalsDetails: translatedGoalsDetails,
+            userLevel: Value(0),
+            userPoints: Value(0),
+          ),
+        );
+  } else {
+    // Update the existing user
+    await (db.update(db.userdata)..where((t) => t.id.equals(1))).write(
+      UserdataCompanion(
+        personalData: Value(translatedPersonalData),
+        goalsDetails: Value(translatedGoalsDetails),
+        userLevel: Value(0),
+        userPoints: Value(0),
+      ),
+    );
+  }
 }
