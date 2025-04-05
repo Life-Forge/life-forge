@@ -54,8 +54,8 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updateUserData(List<dynamic> newData) {
     return (update(userdata)..where((tbl) => tbl.id.equals(newData[0]))).write(
       UserdataCompanion(
-        personalData: Value(newData[1]),
-        goalsDetails: Value(newData[2]),
+        //personalData: Value(newData[1]),
+        //goalsDetails: Value(newData[2]),
         userLevel: Value(newData[3]),
         userPoints: Value(newData[4]),
       ),
