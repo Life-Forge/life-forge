@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' as f;
 import 'package:life_forge/database/app_database.dart';
 import 'package:life_forge/main.dart';
 import 'package:life_forge/utility/json_translator.dart';
+import 'package:life_forge/utility/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -14,10 +15,17 @@ class SetupScreen extends StatefulWidget {
 }
 
 class _SetupScreenState extends State<SetupScreen> {
+  
   Future<void> completeSetup() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('first_time', false);
+    final notificationService = NotificationService();
+
+// In your main or app initialization
+    await notificationService.initialize();
+    await notificationService.requestPermissions();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +105,8 @@ class _SetupScreen2State extends State<SetupScreen2> {
                 onPressed: () async {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('user_name', textController.text);
+                  
+
                   Navigator.pushReplacement(
                     // ignore: use_build_context_synchronously
                     context,
@@ -104,6 +114,7 @@ class _SetupScreen2State extends State<SetupScreen2> {
                       builder: (context) => const SetupScreen3(),
                     ),
                   );
+
                 },
                 child: const Text('Continue'),
               ),

@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
     as flutter_radar_chart;
 import 'package:life_forge/database/app_database.dart';
+import 'package:life_forge/utility/notification_service.dart';
 
 import 'package:life_forge/widgets/questionare.dart';
 import 'package:life_forge/utility/json_translator.dart';
@@ -22,6 +23,7 @@ Future<String?> myUserData(int userId, String fieldName) async {
   final result = await query.getSingleOrNull();
   //List<UserdataData>? userdatatable = await db.getAllUserData();
   //print('key=B3 $userdatatable');
+
 
   if (result == null) return null; // No data found
 
@@ -59,6 +61,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String username = 'User'; //CHECK
+  final NotificationService notificationService = NotificationService(); // Initialize NotificationService
 
   final List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; //CHECK
 
@@ -264,6 +267,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+
     labelText();
     return Scaffold(
       backgroundColor: Colors.white,
@@ -509,10 +513,21 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(20.0),
                     child: ElevatedButton(
                       onPressed:
-                          () => showFullScreenPopup(
+                          () async => {
+                          showFullScreenPopup(
                             context,
                             questionsParameterPair,
                           ),
+                          print('key=1A notification'),
+                          await notificationService.scheduleDailyNotificationAt9AM(
+                            id: 1,
+                            title: "Daily Reminder",
+                            body: "It's 9 AM! Time for your daily task."
+                          ),
+                          
+                          
+
+                        },
                       child: Text('Record Today\'s Progress'),
                     ),
                   ),

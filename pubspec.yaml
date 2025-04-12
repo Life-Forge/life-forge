@@ -39,6 +39,11 @@ dependencies:
   drift: ^2.15.0  # For database
   sqlite3_flutter_libs: ^0.5.20  # For database
   path_provider: ^2.1.2  # For database
+  flutter_launcher_icons: ^0.14.3  # For app icons
+  flutter_local_notifications: ^19.0.0  # For notifications
+  timezone: ^0.10.0  # For time zone support
+  permission_handler: ^11.2.0  # For permission handling
+  
   
 
 dev_dependencies:
