@@ -13,39 +13,36 @@ class NotificationService {
 
   Future<void> initialize() async {
     tz_data.initializeTimeZones();
-    
+
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    
+
     final DarwinInitializationSettings iOSSettings =
         DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    
+
     final InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iOSSettings,
     );
-    
+
     await flutterLocalNotificationsPlugin.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap
+        // Handle notification tap logic here
       },
     );
   }
 
   Future<void> requestPermissions() async {
-    // For Android, use requestNotificationsPermission instead
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
-        // Android permissions are handled differently; no need to call requestPermission here.
-            
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
@@ -55,30 +52,27 @@ class NotificationService {
           sound: true,
         );
   }
-  
-  Future<void> scheduleDailyNotificationAt9AM({
+
+  Future<void> scheduleDailyNotification({
     required int id,
     required String title,
     required String body,
+    required int hour,
+    required int minute,
   }) async {
     tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
     final now = tz.TZDateTime.now(tz.local);
-    print('key=2A notification');
-    print('key=2C $now');
-    // Set notification time to 9:00 AM
+
     var scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
-      now.day+1, // Schedule for tomorrow
-      // this will give an error on 31st and 30th of month
-      21, // 9 AM
-      0, // 0 minutes
+      now.day,
+      hour,
+      minute,
     );
-    
-    // If it's already past 9 AM today, schedule for tomorrow
+
     if (scheduledDate.isBefore(now)) {
-      print('key=2B scheduled for tomm');
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
@@ -91,21 +85,21 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'daily_notification_channel',
           'Daily Notifications',
-          channelDescription: 'Notifications that trigger daily at 9 AM',
+          channelDescription: 'Notifications that trigger daily at set time',
           importance: Importance.high,
           priority: Priority.high,
         ),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
-  
+
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
   }
-  
+
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
   }

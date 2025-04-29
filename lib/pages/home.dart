@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as material;
@@ -5,13 +7,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
     as flutter_radar_chart;
 import 'package:life_forge/database/app_database.dart';
+
 import 'package:life_forge/utility/notification_service.dart';
 
 import 'package:life_forge/widgets/questionare.dart';
 import 'package:life_forge/utility/json_translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-
 
 Future<String?> myUserData(int userId, String fieldName) async {
   final db = AppDatabase();
@@ -23,7 +24,6 @@ Future<String?> myUserData(int userId, String fieldName) async {
   final result = await query.getSingleOrNull();
   //List<UserdataData>? userdatatable = await db.getAllUserData();
   //print('key=B3 $userdatatable');
-
 
   if (result == null) return null; // No data found
 
@@ -61,10 +61,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String username = 'User'; //CHECK
-  final NotificationService notificationService = NotificationService(); // Initialize NotificationService
+  final NotificationService notificationService =
+      NotificationService(); // Initialize NotificationService
 
   final List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; //CHECK
-
 
   List<String> featuresToTrack = [
     'Feature1',
@@ -73,13 +73,13 @@ class _HomePageState extends State<HomePage> {
     'Feature4',
     'Feature5',
   ]; //CHECK
-  
-  List<String> adjustedLabels=[];
+
+  List<String> adjustedLabels = [];
   List<num> featuresData = [0, 0, 0, 0, 0]; //CHECK
   num overallLevel = 1; //CHECK
   num streak =
       1; // look at last and second last entry in the database and process
-  List<double> weeklyProgress = [0, 0, 0, 0, 0, 0, 0]; // get from db
+  List<double> weeklyProgress = [0,0,0,0,0,0,0]; // get from db
   /*
   For now, we are gonna just put the percentage work for each day for week's progress
   
@@ -94,22 +94,25 @@ class _HomePageState extends State<HomePage> {
 
   double currentPoints = 0; //CHECk
   final double pointsForNextLevel = 150; // get from levels definition
-  final double pointsForCurrentLevel = 0;
+  final double pointsForoverallLevel = 0;
   List<Map<String, dynamic>> userData = [];
   List<Map<String, dynamic>> goalsDetails = [];
 
-  
   void labelText() {
     List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    weekDays = weekDays.reversed.toList(); // Reverse first
 
     DateTime now = DateTime.now();
     int todayWeekday = now.weekday; // 1 = Monday, 7 = Sunday
 
-    // Adjust index correctly (subtract 1 to align with zero-based indexing)
+// Adjust for reversed list
+    int reversedIndex = (7 - todayWeekday) % 7;
+
     adjustedLabels = [
-      ...weekDays.sublist(todayWeekday - 1),
-      ...weekDays.sublist(0, todayWeekday - 1),
+      ...weekDays.sublist(reversedIndex),
+      ...weekDays.sublist(0, reversedIndex),
     ];
+
   }
 
   @override
@@ -121,47 +124,63 @@ class _HomePageState extends State<HomePage> {
   }
 
   void streakUpdater() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance(); 
-    streak = prefs.getInt('streak') ?? 0; // Provide a default value of 0 if null
-
-
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    streak =
+        prefs.getInt('streak') ?? 0; // Provide a default value of 0 if null
   }
 
   Future<void> _loadProgressData() async {
     List<UserdailydataData> userDailyDataRaw = await getxLatestDailyReadings(7);
-
+    print('mark: called1');
     featuresData = List.generate(
       jsonStringToMapList(userDailyDataRaw[0].dailyData).length,
       (index) => 0,
     );
-
+    print('mark: called2');
     for (var i = 0; i < userDailyDataRaw.length; i++) {
       for (var x = 0; x < featuresData.length; x++) {
         double points =
-            jsonStringToMapList(
+            (jsonStringToMapList(
               userDailyDataRaw[i].dailyData,
-            )[x]['sliderValue'];
+            )[x]['sliderValue']).toDouble();
         featuresData[x] += points / 100;
       }
     }
+    print('mark: called3');
 
     for (var i = 0; i < featuresData.length; i++) {
       featuresData[i] = featuresData[i] / userDailyDataRaw.length;
       featuresData[i] = featuresData[i] * 5;
     }
-
+    print('mark: called4');
     weeklyProgress = List.generate(7, (index) => 0);
-
+    
     for (var i = 0; i < featuresData.length; i++) {
       for (var x = 0; x < userDailyDataRaw.length; x++) {
         double points =
-            jsonStringToMapList(
+            (jsonStringToMapList(
               userDailyDataRaw[x].dailyData,
-            )[i]['sliderValue'];
+            )[i]['sliderValue']).toDouble();
         weeklyProgress[x] += points / featuresData.length;
       }
     }
+    print('mark: called5');
+    print('key=1F $featuresData');
+    print('key=1E $weeklyProgress');
+
   }
+  void printInChunks(String text) {
+    final pattern = RegExp('.{1,800}'); // 800 characters per chunk
+    int key = 1;
+    for (var match in pattern.allMatches(text)) {
+      print('key=$key ${match.group(0)}');
+      key++;
+    }
+    
+    print('key=1D $weeklyProgress');
+
+  }
+
 
   Future<void> _loadUserData() async {
     String? userDataRaw = await myUserData(
@@ -172,11 +191,17 @@ class _HomePageState extends State<HomePage> {
     String? goalsDetailsRaw = await myUserData(1, 'goalsDetails');
     String? userPointsRaw = await myUserData(1, 'userPoints');
     //print('$userPointsRaw:1A:$levelStr');
-    if (levelStr == null) {
-      overallLevel = 0;
-    } else {
-      overallLevel = num.parse(levelStr);
-    }
+    currentPoints = double.parse(userPointsRaw ?? '0');
+    if (true) {
+      overallLevel = sqrt(currentPoints / 100).floor();
+      //print('key=1A $overallLevel');
+      //print('key=1B $currentPoints');
+    } //else {
+    //overallLevel = num.parse(levelStr);
+    // }
+    var db = AppDatabase();
+    var userAllData = await db.getAllUserDailyData();
+    printInChunks('key=1C $userAllData');
 
     if (goalsDetailsRaw != null) {
       setState(() {
@@ -185,7 +210,6 @@ class _HomePageState extends State<HomePage> {
           goalsDetails.length,
           (index) => goalsDetails[index]['name'],
         );
-        
       });
     }
 
@@ -317,10 +341,14 @@ class _HomePageState extends State<HomePage> {
                       height: screenHeight * 0.3,
                       width: screenWidth * 0.8,
                       child: flutter_radar_chart.RadarChart(
-                        features: (featuresToTrack.map((feature) {
-                                    return feature.replaceAll(" ", "\n"); // Break long words into two lines
-                                  }).toList()),
-                        
+                        features:
+                            (featuresToTrack.map((feature) {
+                              return feature.replaceAll(
+                                " ",
+                                "\n",
+                              ); // Break long words into two lines
+                            }).toList()),
+
                         data: [featuresData],
                         ticks: [1, 2, 3, 4, 5],
                         graphColors: [Colors.red],
@@ -337,8 +365,10 @@ class _HomePageState extends State<HomePage> {
                         width: screenWidth * 0.8, // Adjust width as needed
                         child: LinearProgressIndicator(
                           value:
-                              (currentPoints - pointsForCurrentLevel) /
-                              (pointsForNextLevel - pointsForCurrentLevel),
+                              (currentPoints -
+                                  (100 * overallLevel * overallLevel)) /
+                              ((100 * (overallLevel + 1) * (overallLevel + 1)) -
+                                  (100 * overallLevel * overallLevel)),
                           backgroundColor: Colors.grey,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Colors.blue,
@@ -514,20 +544,19 @@ class _HomePageState extends State<HomePage> {
                     child: ElevatedButton(
                       onPressed:
                           () async => {
-                          showFullScreenPopup(
-                            context,
-                            questionsParameterPair,
-                          ),
-                          print('key=1A notification'),
-                          await notificationService.scheduleDailyNotificationAt9AM(
-                            id: 1,
-                            title: "Daily Reminder",
-                            body: "It's 9 AM! Time for your daily task."
-                          ),
-                          
-                          
-
-                        },
+                            showFullScreenPopup(
+                              context,
+                              questionsParameterPair,
+                            ),
+                            //print('key=1A notification'),
+                            await notificationService.scheduleDailyNotification(
+                              id: 1,
+                              title: "Daily Reminder",
+                              body: "It's 9 AM! Time for your daily task.",
+                              hour: 21,
+                              minute: 00,
+                            ),
+                          },
                       child: Text('Record Today\'s Progress'),
                     ),
                   ),
