@@ -5,9 +5,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_radar_chart/flutter_radar_chart.dart'
     as flutter_radar_chart;
 import 'package:life_forge/database/app_database.dart';
+import 'package:life_forge/utility/notification_service.dart';
 
 import 'package:life_forge/widgets/questionare.dart';
 import 'package:life_forge/utility/json_translator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
 
 Future<String?> myUserData(int userId, String fieldName) async {
   final db = AppDatabase();
@@ -19,6 +23,7 @@ Future<String?> myUserData(int userId, String fieldName) async {
   final result = await query.getSingleOrNull();
   //List<UserdataData>? userdatatable = await db.getAllUserData();
   //print('key=B3 $userdatatable');
+
 
   if (result == null) return null; // No data found
 
@@ -56,8 +61,11 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String username = 'User'; //CHECK
+  final NotificationService notificationService = NotificationService(); // Initialize NotificationService
 
   final List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; //CHECK
+
+
   List<String> featuresToTrack = [
     'Feature1',
     'Feature2',
@@ -65,9 +73,11 @@ class _HomePageState extends State<HomePage> {
     'Feature4',
     'Feature5',
   ]; //CHECK
+  
+  List<String> adjustedLabels=[];
   List<num> featuresData = [0, 0, 0, 0, 0]; //CHECK
   num overallLevel = 1; //CHECK
-  final num streak =
+  num streak =
       1; // look at last and second last entry in the database and process
   List<double> weeklyProgress = [0, 0, 0, 0, 0, 0, 0]; // get from db
   /*
@@ -88,11 +98,33 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> userData = [];
   List<Map<String, dynamic>> goalsDetails = [];
 
+  
+  void labelText() {
+    List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    DateTime now = DateTime.now();
+    int todayWeekday = now.weekday; // 1 = Monday, 7 = Sunday
+
+    // Adjust index correctly (subtract 1 to align with zero-based indexing)
+    adjustedLabels = [
+      ...weekDays.sublist(todayWeekday - 1),
+      ...weekDays.sublist(0, todayWeekday - 1),
+    ];
+  }
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
     _loadProgressData();
+    streakUpdater();
+  }
+
+  void streakUpdater() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance(); 
+    streak = prefs.getInt('streak') ?? 0; // Provide a default value of 0 if null
+
+
   }
 
   Future<void> _loadProgressData() async {
@@ -153,6 +185,7 @@ class _HomePageState extends State<HomePage> {
           goalsDetails.length,
           (index) => goalsDetails[index]['name'],
         );
+        
       });
     }
 
@@ -234,6 +267,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+
+    labelText();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -282,7 +317,10 @@ class _HomePageState extends State<HomePage> {
                       height: screenHeight * 0.3,
                       width: screenWidth * 0.8,
                       child: flutter_radar_chart.RadarChart(
-                        features: featuresToTrack,
+                        features: (featuresToTrack.map((feature) {
+                                    return feature.replaceAll(" ", "\n"); // Break long words into two lines
+                                  }).toList()),
+                        
                         data: [featuresData],
                         ticks: [1, 2, 3, 4, 5],
                         graphColors: [Colors.red],
@@ -434,7 +472,7 @@ class _HomePageState extends State<HomePage> {
                                         top: 8.0,
                                       ), // Adjust spacing
                                       child: Text(
-                                        labels[value
+                                        adjustedLabels[value
                                             .toInt()], // Get custom label from list
                                         style: TextStyle(
                                           fontSize: 12,
@@ -475,10 +513,21 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(20.0),
                     child: ElevatedButton(
                       onPressed:
-                          () => showFullScreenPopup(
+                          () async => {
+                          showFullScreenPopup(
                             context,
                             questionsParameterPair,
                           ),
+                          print('key=1A notification'),
+                          await notificationService.scheduleDailyNotificationAt9AM(
+                            id: 1,
+                            title: "Daily Reminder",
+                            body: "It's 9 AM! Time for your daily task."
+                          ),
+                          
+                          
+
+                        },
                       child: Text('Record Today\'s Progress'),
                     ),
                   ),

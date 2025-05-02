@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:life_forge/pages/home.dart';
+import 'package:life_forge/utility/notification_service.dart';
+
+import 'package:timezone/data/latest.dart' as tz;
 //import 'package:drift/drift.dart';
 //import 'package:life_forge/utility/json_translator.dart';
 //import 'database/app_database.dart'; // Ensure this contains the required Drift database setup
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart';
 
 import 'pages/initial_setup.dart';
 
@@ -19,6 +23,16 @@ import 'pages/initial_setup.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   bool firstTime = await isFirstTime();
+  final notificationService = NotificationService();
+  tz.initializeTimeZones();
+  setLocalLocation(getLocation('Asia/Kolkata'));
+
+
+
+// In your main or app initialization
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
+  
 
   runApp(MyApp(firstTime: firstTime));
 }

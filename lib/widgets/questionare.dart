@@ -1,24 +1,87 @@
+//import 'dart:ffi';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as f;
+import 'package:life_forge/pages/home.dart';
 import 'package:life_forge/utility/json_translator.dart';
 import 'package:life_forge/database/app_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void showFullScreenPopup(BuildContext context, questionsParameterPair) {
+void showFullScreenPopup(BuildContext context, questionsParameterPair) async{
   List<Map<String, String>> questionsParameterPairs = questionsParameterPair;
 
-  showDialog(
-    context: context,
-    barrierColor: Colors.black.withAlpha(108),
-    builder: (context) {
-      return Dialog(
-        backgroundColor: Colors.black.withAlpha(204),
-        insetPadding: EdgeInsets.all(20.0),
-        child: _QuestionnairePopup(questionsParameterPairs),
-      );
-    },
-  );
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  DateTime date = DateTime.now();
+  String formattedDate = '${date.year}-${date.month}-${date.day}';
+  String? dateData = prefs.getString('lastDate');
+
+  if (dateData == formattedDate)
+  {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha(108),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.black.withAlpha(204),
+          insetPadding: EdgeInsets.all(20.0),
+          child: DuplicateEntry(),
+        );
+      },
+    );
+  }
+  else{
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha(108),
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.black.withAlpha(204),
+          insetPadding: EdgeInsets.all(20.0),
+          child: _QuestionnairePopup(questionsParameterPairs),
+        );
+      },
+    );
+  }
 }
+
+class DuplicateEntry extends StatefulWidget {
+  const DuplicateEntry({super.key});
+
+  @override
+  State<DuplicateEntry> createState() => _DuplicateEntryState();
+}
+
+class _DuplicateEntryState extends State<DuplicateEntry> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: MediaQuery.of(context).size.height,
+      padding: EdgeInsets.all(20),
+      child: f.Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text("You have already updated Today's data. Please comeback tomorrow.",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),  
+          ),
+          SizedBox(height: 20,),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Icon(Icons.close),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class _QuestionnairePopup extends StatefulWidget {
   final List<Map<String, String>> questionsParameterPair;
@@ -84,7 +147,7 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
           ),
           SizedBox(height: 20),
           Text(
-            "Parameter Tracked:${questions[currentQuestion]['parameter']} \n Rate progress(0-100)",
+            "\t \t \t \t \t \t Goal:${questions[currentQuestion]['name']} \n Rate your progress today(0-100)",
             style: TextStyle(color: Colors.white),
           ),
           Slider(
@@ -105,7 +168,7 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
             children: [
               ElevatedButton(
                 onPressed: _prevQuestion,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                //style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
                 child: Text("Previous"),
               ),
               ElevatedButton(
@@ -154,9 +217,29 @@ class _QuestionnairePopupState extends State<_QuestionnairePopup> {
       //print('updatePoints done');
 
       insertUserDailyData(answers);
+      DateTime date = DateTime.now();
+      String formattedDate = '${date.year}-${date.month}-${date.day}';
+      final prefs = await SharedPreferences.getInstance();
+      String? previousDate = prefs.getString('lastDate');
+      prefs.setString('lastDate',formattedDate);
+      int? streak = prefs.getInt('streak');
+      //print('Key=1A $streak');
 
+      if (previousDate ==  '${date.year}-${date.month}-${date.day-1}'){// sub 1 from date
+        streak = (streak ?? 0) + 1;
+        //print('Key=1B $streak');
+      }
+      else {
+        streak = 0;
+        //print('Key=1C $streak');
+      }
+      //print('Key=1D $streak');
+      prefs.setInt('streak', streak);
+      
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
+      Navigator.pushReplacement(context, 
+      MaterialPageRoute(builder: (context) => HomePage()));
       //printUserData();
       //it works
     }
