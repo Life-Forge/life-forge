@@ -13,6 +13,7 @@ import 'package:life_forge/utility/notification_service.dart';
 import 'package:life_forge/widgets/questionare.dart';
 import 'package:life_forge/utility/json_translator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:life_forge/pages/home_v2.dart';
 
 Future<String?> myUserData(int userId, String fieldName) async {
   final db = AppDatabase();
@@ -187,7 +188,7 @@ class _HomePageState extends State<HomePage> {
       1,
       'personalData',
     ); // Replace 1 with actual user ID
-    String? levelStr = await myUserData(1, 'userLevel');
+    //String? levelStr = await myUserData(1, 'userLevel');
     String? goalsDetailsRaw = await myUserData(1, 'goalsDetails');
     String? userPointsRaw = await myUserData(1, 'userPoints');
     //print('$userPointsRaw:1A:$levelStr');
@@ -568,6 +569,15 @@ class _HomePageState extends State<HomePage> {
       ),
 
       bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          if (index==1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomeV2()),
+            );
+
+          }
+        },
         destinations: [
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(
