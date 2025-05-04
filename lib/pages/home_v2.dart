@@ -51,6 +51,15 @@ Future<List<UserdailydataData>> getxLatestDailyReadings(int x) async {
       .get();
 }
 
+void printInChunks(String text) {
+  final pattern = RegExp('.{1,800}'); // 800 characters per chunk
+  int key = 1;
+  for (var match in pattern.allMatches(text)) {
+    print('key=$key ${match.group(0)}');
+    key++;
+  }
+}
+
 class HomeV2 extends StatefulWidget {
   const HomeV2({super.key});
 
@@ -79,13 +88,15 @@ class _HomeV2State extends State<HomeV2> {
   num streak =
       1; // look at last and second last entry in the database and process
   List<double> weeklyProgress = [0, 0, 0, 0, 0, 0, 0];
+  final NotificationService notificationService = NotificationService();
 
   // ALL COLORS
-  final Color primaryColor = const Color(0xff1e1e24);
-  final Color secondaryColor = const Color(0xff2a2a34);
+  final Color primaryColor = const Color(0xff000000);
+  final Color secondaryColor = const Color.fromARGB(255, 15, 15, 15);
   final Color textColor = const Color(0xfff8f8f2);
   // ignore: deprecated_member_use
-  final Color secondaryTextColor = const Color(0xff00cfff);
+  final Color secondaryTextColor = const Color(0xffdda0dd);
+  Color graphColors = Colors.red;
 
   // FUNCTIONS
   Future<void> _loadUserData() async {
@@ -184,10 +195,7 @@ class _HomeV2State extends State<HomeV2> {
     }
 
     List<UserdailydataData> rawdata = await getxLatestDailyReadings(14);
-    userPerfomanceData = List.generate(
-      jsonStringToMapList(rawdata[0].dailyData).length,
-      (index) => [0, 0],
-    );
+    userPerfomanceData = List.generate(rawdata.length, (index) => [0, 0]);
     for (var i = 0; i < rawdata.length; i++) {
       for (var x = 0; x < featuresData.length; x++) {
         double points =
@@ -198,7 +206,27 @@ class _HomeV2State extends State<HomeV2> {
       if (userPerfomanceData[i][0] > 30) {
         userPerfomanceData[i][1] = 0;
       }
+
+      printInChunks('key=2D $rawdata');
+      print('key=2E ${rawdata.length}');
     }
+    double score_avg = 0;
+    for (var i = 0; i < featuresData.length; i++) {
+      score_avg += featuresData[i] / featuresData.length;
+    }
+
+    if (score_avg > 30) {
+      graphColors = Color(0xff008b8b);
+    } else if (score_avg > 20) {
+      graphColors = Colors.yellow;
+    } else {
+      graphColors = Color(0xffc51e3a);
+    }
+
+    setState(() {
+      featuresData = featuresData;
+      userPerfomanceData = userPerfomanceData;
+    });
   }
 
   @override
@@ -277,7 +305,8 @@ class _HomeV2State extends State<HomeV2> {
                             }).toList()),
                         featuresTextStyle: TextStyle(
                           color: textColor,
-                          fontSize: 12,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                         ),
 
                         data: [
@@ -285,108 +314,152 @@ class _HomeV2State extends State<HomeV2> {
                           [5, 5, 5, 5, 5],
                         ],
                         ticks: [1, 2, 3, 4, 5],
-                        graphColors: [Colors.red, secondaryColor],
+                        graphColors: [graphColors, secondaryColor],
 
                         sides: featuresData.length,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: screenHeight * 0.02,
-                  ),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox(
-                        height: screenWidth * 0.5,
-                        width: screenWidth * 0.5,
-                        child: CircularProgressIndicator(
-                          value:
-                              (currentPoints -
-                                  (100 * overallLevel * overallLevel)) /
-                              ((100 * (overallLevel + 1) * (overallLevel + 1)) -
-                                  (100 *
-                                      overallLevel *
-                                      overallLevel)), // value from 0.0 to 1.0
-                          backgroundColor: Colors.grey[800],
-                          strokeWidth: 50.0,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.cyanAccent,
-                          ),
-                        ),
-                      ),
-                      material.Column(
-                        children: [
-                          Text(
-                            'Level',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                          Text(
-                            '$overallLevel',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                          Text(
-                            '$currentPoints/${100 + (300 * overallLevel * overallLevel)}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  /*
-                  Padding(
-                    padding: const EdgeInsets.all(30.0),
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: userPerfomanceData.length,
-                      itemBuilder: (context, index) {
-                        double value = userPerfomanceData[index][0];
-
-                        Color bgcolor;
-                        if (value > 30) {
-                          bgcolor = Colors.green;
-                        } else if (value > 20) {
-                          bgcolor = Colors.yellow;
-                        } else {
-                          bgcolor = Colors.red;
-                        }
-                        return Container(
-                          width: screenWidth * 0.3,
-                          height: screenHeight * 0.2,
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: bgcolor,
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Day ${index + 1}\n${userPerfomanceData[index][0].toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),*/
                 ],
               ),
+            ),
+            SizedBox(height: screenHeight * 0.02),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  height: screenWidth * 0.5,
+                  width: screenWidth * 0.5,
+                  child: CircularProgressIndicator(
+                    value:
+                        (currentPoints - (100 * overallLevel * overallLevel)) /
+                        ((100 * (overallLevel + 1) * (overallLevel + 1)) -
+                            (100 *
+                                overallLevel *
+                                overallLevel)), // value from 0.0 to 1.0
+                    backgroundColor: Colors.grey[800],
+                    strokeWidth: 50.0,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xffad5691),
+                    ),
+                  ),
+                ),
+                material.Column(
+                  children: [
+                    Text(
+                      'Level',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    Text(
+                      '$overallLevel',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    Text(
+                      '$currentPoints/${100 + (300 * overallLevel * overallLevel)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: screenHeight * 0.04),
+            SizedBox(
+              height: screenHeight * 0.1,
+
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: userPerfomanceData.length,
+                itemBuilder: (context, index) {
+                  double value = userPerfomanceData[index][0];
+
+                  Color bgcolor;
+                  if (value > 30) {
+                    bgcolor = Color(0xff008b8b);
+                  } else if (value > 20) {
+                    bgcolor = Colors.yellow;
+                  } else {
+                    bgcolor = Color(0xffc51e3a);
+                  }
+                  return Container(
+                    width: screenWidth * 0.3,
+                    height: screenHeight * 0.1,
+                    margin: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: bgcolor,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Day ${index + 1}\n${userPerfomanceData[index][0].toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            material.Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: secondaryTextColor,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.1,
+                          vertical: screenHeight * 0.01,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed:
+                          () async => {
+                            showFullScreenPopup(
+                              context,
+                              questionsParameterPair,
+                            ),
+                            //print('key=1A notification'),
+                            await notificationService.scheduleDailyNotification(
+                              id: 1,
+                              title: "Daily Reminder",
+                              body: "It's 9 AM! Time for your daily task.",
+                              hour: 21,
+                              minute: 00,
+                            ),
+                          },
+                      child: Text(
+                        'Record Today\'s Progress',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

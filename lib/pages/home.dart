@@ -132,12 +132,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadProgressData() async {
     List<UserdailydataData> userDailyDataRaw = await getxLatestDailyReadings(7);
-    print('mark: called1');
+    
     featuresData = List.generate(
       jsonStringToMapList(userDailyDataRaw[0].dailyData).length,
       (index) => 0,
     );
-    print('mark: called2');
+    
     for (var i = 0; i < userDailyDataRaw.length; i++) {
       for (var x = 0; x < featuresData.length; x++) {
         double points =
@@ -147,13 +147,13 @@ class _HomePageState extends State<HomePage> {
         featuresData[x] += points / 100;
       }
     }
-    print('mark: called3');
+    
 
     for (var i = 0; i < featuresData.length; i++) {
       featuresData[i] = featuresData[i] / userDailyDataRaw.length;
       featuresData[i] = featuresData[i] * 5;
     }
-    print('mark: called4');
+    
     weeklyProgress = List.generate(7, (index) => 0);
     
     for (var i = 0; i < featuresData.length; i++) {
@@ -165,21 +165,16 @@ class _HomePageState extends State<HomePage> {
         weeklyProgress[x] += points / featuresData.length;
       }
     }
-    print('mark: called5');
-    print('key=1F $featuresData');
-    print('key=1E $weeklyProgress');
+
 
   }
   void printInChunks(String text) {
-    final pattern = RegExp('.{1,800}'); // 800 characters per chunk
+    final pattern = RegExp('.{1,200}'); // 800 characters per chunk
     int key = 1;
     for (var match in pattern.allMatches(text)) {
       print('key=$key ${match.group(0)}');
       key++;
-    }
-    
-    print('key=1D $weeklyProgress');
-
+    }  
   }
 
 
@@ -202,7 +197,7 @@ class _HomePageState extends State<HomePage> {
     // }
     var db = AppDatabase();
     var userAllData = await db.getAllUserDailyData();
-    printInChunks('key=1C $userAllData');
+    //printInChunks('key=1C $userAllData');
 
     if (goalsDetailsRaw != null) {
       setState(() {
