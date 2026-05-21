@@ -45,6 +45,8 @@ class AppDatabase extends _$AppDatabase {
     return select(userdata).get(); // ✅ Fixed return type `UserdataData`
   }
 
+
+  
   Future<List<UserdailydataData>> getAllUserDailyData() {
     return select(
       userdailydata,
